@@ -53,6 +53,8 @@ response:
         "score": 8,
         "special": 2,
         "flower_limit": 3,
+        "coordinate_x": 42.5678,
+        "coordinate_y": 42.1234,
         "rank": {
             "score": {
                 "number": 1,
@@ -66,10 +68,6 @@ response:
                 "number": 1,
                 "percentage": "100%",
             },
-        "coordinate": {
-            "x": 42.5678,
-            "y": 42.1234,
-            }
         }
     }
 
@@ -102,11 +100,13 @@ request:
 5.  /display/beauties/
 
 request:
+    # gender: 0--femal, 1--male, 2--both.
     {
         "fb_id": "",
         "coordinate_x": 42.123,
         "coordinate_y": 42.123,
-        "span": 50
+        "span": 50,
+        "gender": 1
     }
 
 response:
@@ -119,10 +119,8 @@ response:
                 "rater_number": 1,
                 "flower": 5,
                 "special": 1,
-                "coordinate": {
-                    "x": 42.56732,
-                    "y": 42.56732,
-                }
+                "coordinate_x": 42.5678,
+                "coordinate_y": 42.1234,
             }
         ]
     }
