@@ -1,7 +1,7 @@
 rb-server
 =========
 POST  /user/login/                    user register/login
-GET  /user/logout/<fb_id>             user logout
+POST  /user/logout/                   user logout
 POST  /user/profile/                  show user profile
 POST  /user/records/                  recordes user ratings after logout
 POST  /display/beauties/              display pictures of beauties
