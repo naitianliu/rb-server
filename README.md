@@ -249,9 +249,7 @@ response:
 
 request:
 
-{
-    "fb_id": "",
-}
+GET /display/beauty/profile/<fb_id>
 
 response:
     {
