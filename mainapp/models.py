@@ -23,15 +23,15 @@ class user(models.Model):
 class user_rating(models.Model):
     from_fb_id = models.CharField(max_length=20)
     to_fb_id = models.CharField(max_length=20)
-    score = models.IntegerField(max_length=2)
-    is_flower = models.BooleanField(default=False)
-    is_special = models.BooleanField(default=False)
-    is_rated = models.BooleanField(default=False)
+    score = models.IntegerField()
+    is_flower = models.BooleanField()
+    is_special = models.BooleanField()
+    is_rated = models.BooleanField()
     datetime = models.DateTimeField(auto_now=True)
 
 
 class user_info(models.Model):
-    user = models.OneToOneField(user)
+    new_user = models.OneToOneField(user)
     user_fb_id = models.CharField(max_length=20)
     average_score = models.FloatField()
     total_flowers = models.IntegerField(default=0)

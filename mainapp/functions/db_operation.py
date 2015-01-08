@@ -29,14 +29,6 @@ class DbOperation(object):
             beauty_fb_id_list = globals.all_beauty_fb_id_list
         return beauty_fb_id_list
 
-    def all_beauty_rank_op(self):
-        female_ranked_obejects = globals.female_beauty_fb_id_list
-        male_ranked_obejects = globals.male_beauty_fb_id_list
-        ranked_object = dict(
-            female_ranked_obejects=female_ranked_obejects,
-            male_ranked_obejects=male_ranked_obejects
-        )
-        return ranked_object
 
     def cal_display_nearby_beauties_op(self, gender, user_fb_id):
         user_obj = user.objects.get(fb_id=user_fb_id)
@@ -66,23 +58,48 @@ class DbOperation(object):
         y_limit_up = span_coordinate_y + span_fac
         x_limit_down = span_coordinate_x - span_fac
         y_limit_down = span_coordinate_y - span_fac
-        female_ranked_obejects = user_info.obejcts.filter(Q(user_is_female=True), Q(user_span_coordinate_x=x_limit_up) | Q(user_span_coordinate_x=x_limit_down), Q(user_span_coordinate_y=y_limit_up) | Q(user_span_coordinate_y=y_limit_down)).order_by("-average_score")[0:50]
-        male_ranked_obejects = user_info.obejcts.filter(Q(user_is_female=False), Q(user_span_coordinate_x=x_limit_up) | Q(user_span_coordinate_x=x_limit_down), Q(user_span_coordinate_y=y_limit_up) | Q(user_span_coordinate_y=y_limit_down)).order_by("-average_score")[0:50]
+        female_ranked_objects = user_info.objects.filter(Q(new_user__is_female=True), Q(new_user__span_coordinate_x=x_limit_up) | Q(new_user__span_coordinate_x=x_limit_down), Q(new_user__span_coordinate_y=y_limit_up) | Q(new_user__span_coordinate_y=y_limit_down)).order_by("-average_score")
+        if len(female_ranked_objects) > 50:
+            female_ranked_objects = female_ranked_objects[0:50]
+        male_ranked_objects = user_info.objects.filter(Q(new_user__is_female=True), Q(new_user__span_coordinate_x=x_limit_up) | Q(new_user__span_coordinate_x=x_limit_down), Q(new_user__span_coordinate_y=y_limit_up) | Q(new_user__span_coordinate_y=y_limit_down)).order_by("-average_score")
+        if len(male_ranked_objects) > 50:
+            male_ranked_objects = male_ranked_objects[0:50]
         ranked_object = dict(
-            female_ranked_obejects=female_ranked_obejects,
-            male_ranked_obejects=male_ranked_obejects
+            female_ranked_objects=female_ranked_objects,
+            male_ranked_objects=male_ranked_objects,
         )
         return ranked_object
 
     def update_global_var(self):
         # female
-        globals.female_beauty_fb_id_list = list(user.objects.filter(is_female=True).values_list("fb_id", flat=True))
-        globals.female_ranked_object = user_info.obejcts.filter(user_is_female=True).order_by("-average_score")[0:50]
-        # male
-        globals.male_beauty_fb_id_list = list(user.objects.filter(is_female=False).values_list("fb_id", flat=True))
-        globals.male_ranked_object = user_info.obejcts.filter(user_is_female=False).order_by("-average_score")[0:50]
-        # both
-        globals.all_beauty_fb_id_list = list(user.objects.all().values_list("fb_id", flat=True))
+        try:
+            globals.female_beauty_fb_id_list = list(user.objects.filter(is_female=True).values_list("fb_id", flat=True))
+        except:
+            globals.female_beauty_fb_id_list = []
+        try:
+            globals.female_ranked_object = user_info.objects.filter(new_user__is_female=True).order_by("-average_score")
+            if len(globals.female_ranked_object) > 50:
+                globals.female_ranked_object = globals.female_ranked_object[0:50]
+            print 1
+        except:
+            globals.female_ranked_object = []
+            print 2
+        try:
+            # male
+            globals.male_beauty_fb_id_list = list(user.objects.filter(is_female=False).values_list("fb_id", flat=True))
+        except:
+            globals.male_beauty_fb_id_list = []
+        try:
+            globals.male_ranked_object = user_info.objects.filter(new_user__is_female=True).order_by("-average_score")
+            if len(globals.male_ranked_object) > 50:
+                globals.male_ranked_object = globals.male_ranked_object[0:50]
+        except:
+            globals.male_ranked_object = []
+        try:
+            # both
+            globals.all_beauty_fb_id_list = list(user.objects.all().values_list("fb_id", flat=True))
+        except:
+            globals.all_beauty_fb_id_list = []
         return True
 
     def update_flower_limit(self, user_fb_id, user_datetime):
@@ -98,6 +115,15 @@ class DbOperation(object):
             return True
         else:
             return False
+
+    def buy_flowers_op(self, user_fb_id, special_num, flower_num):
+        user_obj = user.objects.get(fb_id=user_fb_id)
+        current_flower = user_obj.flower_limit
+        current_special = user_obj.special_limit
+        user_obj.flower_limit = current_flower + flower_num
+        user_obj.special_limit = current_special + special_num
+        user_obj.save()
+        return True
 
 
 

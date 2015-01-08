@@ -49,8 +49,8 @@ class RecordData(object):
                 user_obj.special_limit = 100
                 user_obj.save()
             if 500 < user_id <= 1000:
-                user_obj.flower_limit = 200
-                user_obj.special_limit = 100
+                user_obj.flower_limit = 50
+                user_obj.special_limit = 30
                 user_obj.save()
         return True
 
@@ -62,7 +62,7 @@ class RecordData(object):
 
     def record_rating(self, from_fb_id, to_fb_id, score, is_flower, is_special):
         try:
-            row = user_rating.objects.filter(from_fb_id=from_fb_id, to_fb_id=to_fb_id)
+            row = user_rating.objects.get(from_fb_id=from_fb_id, to_fb_id=to_fb_id)
             return False
         except user_rating.DoesNotExist:
             user_rating(
@@ -71,24 +71,15 @@ class RecordData(object):
                 score=score,
                 is_flower=is_flower,
                 is_special=is_special,
+                is_rated=False,
             ).save()
             return True
 
-    def record_flower(self, from_fb_id, to_fb_id, score, is_flower, is_special):
-        try:
-            user_info.objects.filter(user_fb_id=to_fb_id).update(
-                user=user.objects.get(fb_id=to_fb_id),
-                rate_times=F("rate_times")+1.
-            )
-            return False
-        except user_info.DoesNotExist:
-            user_info(
-                user=user.objects.get(fb_id=to_fb_id),
-                user_fb_id=to_fb_id,
-                average_score=score,
-                rate_times=1,
-                last_cal_id=user_rating.objects.get(from_fb_id=from_fb_id, to_fb_id=to_fb_id).id,
-            ).save()
+    def record_flower(self, to_fb_id, is_flower, is_special):
+        user_info.objects.filter(user_fb_id=to_fb_id).update(
+            new_user=user.objects.get(fb_id=to_fb_id),
+            rate_times=F("rate_times")+1,
+        )
         user_info_obj = user_info.objects.filter(user_fb_id=to_fb_id)
         if is_flower:
             user_info_obj.update(total_flowers=F("total_flowers")+1)
@@ -105,4 +96,11 @@ class RecordData(object):
             current_special=current_special,
         ).save()
         return 1
+
+    def decrease_flower(self, user_fb_id, special_num, flower_num):
+        user_obj = user.objects.get(fb_id=user_fb_id)
+        user_obj.flower_limit = flower_num
+        user_obj.special_limit = special_num
+        user_obj.save()
+        return True
 

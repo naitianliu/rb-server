@@ -5,44 +5,87 @@ from django.views.decorators.csrf import csrf_exempt
 from mainapp.functions import record_data
 from mainapp.functions import db_operation
 from mainapp.functions import calculate_data
+from mainapp.static import  globals
 import datetime
 import json
 import time
 import random
 import string
+import urllib2
 # Create your views here.
 
 
 @csrf_exempt
-
 def test(request):
-# Total 10000 users
-    for i in xrange(1, 100):
+    """
+    # insert users
+    for i in xrange(1, 2000):
         coordinate_x = random.uniform(40, 45)
         coordinate_y = random.uniform(40, 45)
-        user(
-            fb_id=str(i),
-            is_female=random.randrange(0, 2),
-            flower_limit=random.randrange(0, 4),
-            email="daigx1990@gmail.com",
-            coordinate_x=coordinate_x,
-            coordinate_y=coordinate_y,
-            span_coordinate_x=int(coordinate_x),
-            span_coordinate_y=int(coordinate_y),
-            first_name="".join(random.sample(string.letters, 5)),
-            last_name="".join(random.sample(string.letters, 5)),
-            is_active=random.randrange(0, 2),
-        ).save()
-    print type(user.objects.get(fb_id='10').id)
-#   average 100 score times per person
-#   user_id= 100:   111 score
-#   user_id= 1000:  1094
-#   user_id= 10000: 11107
+        fb_id = str(i)
+        is_female = random.randrange(0, 2),
+        email = "daigx1990@gmail.com",
+        first_name = "".join(random.sample(string.letters, 5)),
+        last_name = "".join(random.sample(string.letters, 5)),
+        gender = random.randrange(0, 3)
+        url = "http://127.0.0.1:8000/user/login/"
+        data = dict(
+            usr=dict(
+                fb_id=fb_id,
+                first_name=first_name,
+                last_name=last_name,
+                is_female=is_female,
+                gender=gender,
+                email=email,
+                coordinate_x=coordinate_x,
+                coordinate_y=coordinate_y
+            )
+        )
+        data = json.dumps(data)
+        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        req = urllib2.Request(url, data, headers)
+        response = urllib2.urlopen(req)
+    # insert ratings
+    for j in xrange(1, 2000):
+        fb_id = str(j)
+        records_list = []
+        for i in range(1, 50):
+            beauty_fb_id = str(random.randrange(1, 2000))
+            score = random.randrange(1, 11)
+            flower = random.randrange(0, 2)
+            special = random.randrange(0, 2)
+            records_list.append(dict(
+                beauty_fb_id=beauty_fb_id,
+                score=score,
+                flower=flower,
+                special=special,
+            ))
+        data = dict(
+            fb_id=fb_id,
+            records_list=records_list
+        )
+        url = "http://127.0.01:8000/user/records/"
+        heasers = {"Content-Type": "application/json", "Accept": "application/json"}
+        data = json.dumps(data)
+        req = urllib2.Request(url, data, heasers)
+        response = urllib2.urlopen(req)
+    """
+    # calculate score
+    for i in range(1, 2000):
+        url = "http://127.0.0.1:8000/user/score/calculate/"
+        data = dict(
+            fb_id=str(i)
+        )
+        data = json.dumps(data)
+        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        req = urllib2.Request(url, data, headers)
+        response = urllib2.urlopen(req)
     return render_to_response("test.html", RequestContext(request))
 
 @csrf_exempt
 def login(request):
     """
+    # gender: 0--female, 1--male, 2--both.
     POST
     request:
     {
@@ -64,6 +107,23 @@ def login(request):
     gender = usr["gender"]
     record_data.RecordData().record_login(usr)
     user_obj = user.objects.get(fb_id=fb_id)
+    try:
+        user_info_obj = user_info.objects.get(user_fb_id=fb_id)
+    except user_info.DoesNotExist:
+        user_info(
+            new_user=user_obj,
+            user_fb_id=fb_id,
+            average_score=0.000,
+            total_flowers=0,
+            total_specials=0,
+            rate_times=0,
+            score_rank=0,
+            flower_rank=0,
+            special_rank=0,
+            score_percentage="0%",
+            flower_percentage="0%",
+            special_percentage="0%",
+        ).save()
     user_info_obj = user_info.objects.get(user_fb_id=fb_id)
     beauty_fb_id_list = db_operation.DbOperation().cal_display_all_beauties_op(gender)
     try:
@@ -79,6 +139,7 @@ def login(request):
             score=user_info_obj.average_score,
             special=user_info_obj.total_specials,
             flower_limit=user_obj.flower_limit,
+            special_limit=user_obj.special_limit,
             coordinate=dict(
                 x=user_obj.coordinate_y,
                 y=user_obj.coordinate_y,
@@ -116,7 +177,6 @@ def logout(request):
     """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
-    print fb_id
     record_data.RecordData().record_logout(fb_id)
     res_data = {
         "status": 1
@@ -126,6 +186,7 @@ def logout(request):
 @csrf_exempt
 def show_profile(request):
     """
+    # gender: 0--female, 1--male, 2--both.
     POST
     request:
     {
@@ -143,8 +204,8 @@ def show_profile(request):
         special=user_info_obj.total_specials,
         rater_num=user_info_obj.rate_times,
         coordinate=dict(
-            x=user.coordinate_x,
-            y=user.coordinate_y
+            x=user_obj.coordinate_x,
+            y=user_obj.coordinate_y
         ),
         rank=dict(
             score=dict(
@@ -166,6 +227,7 @@ def show_profile(request):
 @csrf_exempt
 def display_nearby_beauties(request):
     """
+    # gender: 0--female, 1--male, 2--both.
     POST
     request:
     {
@@ -216,13 +278,13 @@ def rating_records(request):
                 "beauty_fb_id": "",
                 "score": 9,
                 "flower": 1,
-                "special": True,
+                "special": 1,
             },
             {
                 "beauty_fb_id": "",
                 "score": 8,
-                "flower": 3,
-                "special": True,
+                "flower": 1,
+                "special": 1,
             },
         ]
     }
@@ -241,18 +303,19 @@ def rating_records(request):
     if current_special < used_special or current_flower < used_flower:
         record_data.RecordData().record_exception(fb_id, used_flower, current_flower, used_special, current_special)
     else:
+        flower_num = current_flower - used_flower
+        special_num = current_special - used_special
+        record_data.RecordData().decrease_flower(fb_id, special_num, flower_num)
         for item in records_list:
             beauty_fb_id = item["beauty_fb_id"]
             score = item["score"]
             is_flower = item["flower"]
             is_special = item["special"]
-            record_data.RecordData().record_rating(fb_id, beauty_fb_id, score, is_flower, is_special)
-            record_data.RecordData().record_flower(fb_id, beauty_fb_id, score, is_flower, is_special)
-
+            if record_data.RecordData().record_rating(fb_id, beauty_fb_id, score, is_flower, is_special):
+                record_data.RecordData().record_flower(beauty_fb_id, is_flower, is_special)
     res_data = {
         "success": 1
     }
-    time.sleep(2)
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
 @csrf_exempt
@@ -267,8 +330,8 @@ def nearby_rank_list(request):
     data = json.loads(request.body)
     fb_id = data["fb_id"]
     ranked_obj = db_operation.DbOperation().cal_nearby_beauty_rank_op(fb_id)
-    female_ranked_objects = ranked_obj["female_ranked_obejects"]
-    male_ranked_objects = ranked_obj["male_ranked_obejects"]
+    female_ranked_objects = ranked_obj["female_ranked_objects"]
+    male_ranked_objects = ranked_obj["male_ranked_objects"]
     female_rank = calculate_data.CalculateData().cal_beauty_rank(female_ranked_objects)
     male_rank = calculate_data.CalculateData().cal_beauty_rank(male_ranked_objects)
     res_data = dict(
@@ -289,9 +352,8 @@ def all_rank_list(request):
     """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
-    ranked_obj = db_operation.DbOperation().all_beauty_rank_op()
-    female_ranked_objects = ranked_obj["female_ranked_obejects"]
-    male_ranked_objects = ranked_obj["male_ranked_obejects"]
+    female_ranked_objects = globals.female_ranked_object
+    male_ranked_objects = globals.male_ranked_object
     female_rank = calculate_data.CalculateData().cal_beauty_rank(female_ranked_objects)
     male_rank = calculate_data.CalculateData().cal_beauty_rank(male_ranked_objects)
     res_data = dict(
@@ -337,13 +399,35 @@ def cal_user_score(request):
     user_info_obj.average_score = new_average_score
     user_info_obj.save()
     res_data = dict(
-        status="1"
+        score=new_average_score,
     )
+    calculate_data.CalculateData().cal_user_rank(fb_id)
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
 
 def update_global(request):
     db_operation.DbOperation().update_global_var()
+    res_data = dict(
+        status="1",
+    )
+    return HttpResponse(json.dumps(res_data), content_type="application/json")
+
+
+def buy_flowers(request):
+    """
+    POST
+    request:
+    {
+        "fb_id": ""
+        "flower_num": 10
+        "special_num": 20
+    }
+    """
+    data = json.loads(request.body)
+    fb_id = data["fb_id"]
+    flower_num = data["flower_num"]
+    special_num = data["special_num"]
+    db_operation.DbOperation().buy_flowers_op(fb_id, special_num, flower_num)
     res_data = dict(
         status="1",
     )
