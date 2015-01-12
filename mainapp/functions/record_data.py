@@ -58,7 +58,7 @@ class RecordData(object):
         user_profile = user.objects.get(fb_id=user_fb_id)
         user_profile.is_active = False
         user_profile.save()
-        return True
+        return 0
 
     def record_rating(self, from_fb_id, to_fb_id, score, is_flower, is_special):
         try:
@@ -85,7 +85,7 @@ class RecordData(object):
             user_info_obj.update(total_flowers=F("total_flowers")+1)
         if is_special:
             user_info_obj.update(total_specials=F("total_specials")+1)
-        return 1
+        return 0
 
     def record_exception(self, user_fb_id, user_flower, current_flower, used_special, current_special):
         user_exception(
@@ -95,7 +95,7 @@ class RecordData(object):
             used_special=used_special,
             current_special=current_special,
         ).save()
-        return 1
+        return 0
 
     def decrease_flower(self, user_fb_id, special_num, flower_num):
         user_obj = user.objects.get(fb_id=user_fb_id)

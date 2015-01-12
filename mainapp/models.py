@@ -46,6 +46,21 @@ class user_info(models.Model):
     datetime = models.DateTimeField(auto_now=True)
 
 
+class user_session(models.Model):
+    fb_id = models.CharField(max_length=20)
+    session_id = models.CharField(max_length=400)
+    issued_time = models.DateTimeField()
+    expire_time = models.DateTimeField()
+    datetime = models.DateTimeField(auto_now=True)
+
+
+class user_transaction(models.Model):
+    user_fb_id = models.CharField(max_length=20)
+    transaction_id = models.CharField(max_length=50)
+    purchase_date = models.DateTimeField()
+    datetime = models.DateTimeField(auto_now=True)
+
+
 class user_exception(models.Model):
     user_fb_id = models.CharField(max_length=20)
     used_flower = models.IntegerField(max_length=2)
@@ -53,4 +68,6 @@ class user_exception(models.Model):
     used_special = models.IntegerField(max_length=1)
     current_special = models.IntegerField(max_length=1)
     datetime = models.DateTimeField(auto_now=True)
+
+
 # Create your models here.

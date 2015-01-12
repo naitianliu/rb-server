@@ -100,7 +100,7 @@ class DbOperation(object):
             globals.all_beauty_fb_id_list = list(user.objects.all().values_list("fb_id", flat=True))
         except:
             globals.all_beauty_fb_id_list = []
-        return True
+        return 0
 
     def update_flower_limit(self, user_fb_id, user_datetime):
         user_obj = user.objects.get(fb_id=user_fb_id)
@@ -123,7 +123,7 @@ class DbOperation(object):
         user_obj.flower_limit = current_flower + flower_num
         user_obj.special_limit = current_special + special_num
         user_obj.save()
-        return True
+        return 0
 
 
 
