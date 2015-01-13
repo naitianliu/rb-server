@@ -4,20 +4,18 @@ POST  /user/login/                    user register/login
 POST  /user/logout/                   user logout
 POST  /user/profile/                  show user profile
 POST  /user/records/                  recordes user ratings after logout
-POST  /display/neaby/beauties/        display neaby beauties
-POST  /display/all/beauties/          display all beauties
-POST  /display/neaby/rank/            display neaby rank
-POST  /display/all/rank/              display all rank
+POST  /display/beauties/             display beauties
+POST  /display/rank/                  display rank
 POST  /user/flower/limit/update/      update every day flower limit
 POST  /user/score/calculate/          calculate user average score
-POST  /user/buy/flowers/              buy flowers
+POST  /user/purchase/              buy flowers
 GET  /global/update/                  update global data
 
-# gender: 0--female, 1--male, 2--both.
-# status_code: 0--success, 1--failure
 
 1. /user/login/
-
+    gender: 0--female, 1--male, 2--both.
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id,
+    100--top 100 users, 500--top 500 users, 1000--top 1000 users,
 request:
     {
         "usr":{
@@ -40,7 +38,7 @@ response:
     "status_code": "0",
     "profile": {
         "special": "0",
-        "user_rank_num": "1",
+        "user_register_num": "1",
         "flower": "0",
         "special_limit": "200",
         "flower_limit": "500",
@@ -70,8 +68,8 @@ response:
     }
 }
 
-2.  /user/logout
-
+2.  /user/logout/
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
 request:
     {
         "fb_id": "",
@@ -84,7 +82,7 @@ response:
     }
     
 3.  /user/profile/
-
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
 request:
     {
         "fb_id": "",
@@ -119,7 +117,8 @@ response:
     },
 }  
 4.  /user/records/
-
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+    4--overflow flowers or specials
 request:
     {
         "fb_id": "",
@@ -145,47 +144,16 @@ request:
         "status_code": "0"
     }
 
-5.  /display/nearby/beauties/
-
-request:
+5.  /display/beauties/
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+    # is_span: 0--all, 1--nearby
     # gender: 0--femal, 1--male, 2--both.
+request:
     {
         "fb_id": "",
         "session_id": ""
         "gender": 2,
-    }
-
-response:
-    {
-        "beauty_list": [
-            # beauty fb_id, length = 50
-            {
-                "beauty_fb_id": "529789400456737",
-                "first_name": "",
-                "score": 9,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 3,
-                    "special": 1,
-                },
-                "flower": 5,
-                "special": 1,
-                "coordinate":{
-                    "x": 42.5678,
-                    "y": 42.1234
-                },
-            }
-        ]
-    }
-
-6.  /display/all/beauties
-
-request:
-    # gender: 0--femal, 1--male, 2--both.
-    {
-        "fb_id": "",
-        "session_id": ""
-        "gender": 2,
+        "is_span": 1,
     }
     
 response:
@@ -195,14 +163,10 @@ response:
             {
                 "beauty_fb_id": "529789400456737",
                 "first_name": "",
-                "score": 9,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 3,
-                    "special": 1,
-                },
-                "flower": 5,
-                "special": 1,
+                "score": 9.0,
+                "rater_number":0
+                "flower_num": 5,
+                "special_num": 1,
                 "coordinate":{
                     "x": 42.5678,
                     "y": 42.1234
@@ -211,101 +175,16 @@ response:
         ]
     }
     
-7.   /display/neaby/rank/ 
 
-request:
-
-{
-    "fb_id": ""
-    "session_id": ""
-}
-
-response:
-{
-    "boys": {
-                "score_rank_list": [
-            {
-                "fb_id": 529789400456737,
-                "first_name": "",
-                "rank" : 1,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 6,
-                    "special": 1,
-                }
-            }
-        ],
-        "flower_rank_list": [
-            {
-                "fb_id": 529789400456737,
-                "first_name": "",
-                "rank" : 1,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 6,
-                    "special": 1,
-                },
-            }
-        ],
-        "special_rank_list": [
-            {
-                "fb_id": 529789400456737,
-                "first_name": "",
-                "rank": 1,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 6,
-                    "special": 1,
-                },
-            }
-        ]    
-    }
-    "girls":
-            "score_rank_list": [
-            {
-                "fb_id": 529789400456737,
-                "first_name": "",
-                "rank" : 1,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 6,
-                    "special": 1,
-                }
-            }
-        ],
-        "flower_rank_list": [
-            {
-                "fb_id": 529789400456737,
-                "first_name": "",
-                "rank" : 1,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 6,
-                    "special": 1,
-                },
-            }
-        ],
-        "special_rank_list": [
-            {
-                "fb_id": 529789400456737,
-                "first_name": "",
-                "rank": 1,
-                "rater_number":{
-                    "score": 8,
-                    "flower": 6,
-                    "special": 1,
-                },
-            }
-        ]
-}
-
-8. /display/all/rank/
-
+6. /display/rank/
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+    # is_span: 0--all, 1--nearby
 request:
 
 {
     "fb_id": fb_id,
     "session_id": "",
+    "is_span": "1",
 }
 
 
@@ -388,13 +267,13 @@ response:
             }
         ]
 }
-9. /user/flower/limit/update/
+7. /user/flower/limit/update/
 
 request:
 
 {
     "fb_id": ""
-    "datetime": "datetime"
+    "epoch": 1234567,
     "session_id":
 }
 
@@ -404,12 +283,11 @@ response:
     "status_code": "0",
 }
 
-10. /user/score/calculate/
+8. /user/score/calculate/
 request:
 
     {
         "fb_id": ""
-        "session_id": ""
     }
 response:
 
@@ -418,7 +296,7 @@ response:
     "score": "5.0",
 }
 
-11. /global/update/
+9. /global/update/
 
 request:
 GET
@@ -427,7 +305,9 @@ response:
 {
     "status_code":"0"
 }
-12. /user/buy/flowers/
+10. /user/purchase/
+   status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+   4--exisiting receipt, 5--invalid receipt
 request:
 
     {
