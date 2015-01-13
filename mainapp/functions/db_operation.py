@@ -112,9 +112,9 @@ class DbOperation(object):
             user_obj.flower_limit = 3
             user_obj.flower_update_time = datetime.datetime.now()
             user_obj.save()
-            return True
+            return 0
         else:
-            return False
+            return 1
 
     def buy_flowers_op(self, user_fb_id, special_num, flower_num):
         user_obj = user.objects.get(fb_id=user_fb_id)

@@ -169,41 +169,41 @@ def login(request):
             beauty_list = calculate_data.CalculateData().cal_first_display_beauties(beauty_fb_id_list)
         user_id = user_obj.id
         res_data = dict(
+            status_code=str(status_code),
             profile=dict(
-                user_num=user_id,
-                flower=user_info_obj.total_flowers,
-                score=user_info_obj.average_score,
-                special=user_info_obj.total_specials,
-                flower_limit=user_obj.flower_limit,
-                special_limit=user_obj.special_limit,
+                user_rank_num=str(user_id),
+                flower=str(user_info_obj.total_flowers),
+                score=str(user_info_obj.average_score),
+                special=str(user_info_obj.total_specials),
+                flower_limit=str(user_obj.flower_limit),
+                special_limit=str(user_obj.special_limit),
                 coordinate=dict(
-                    x=user_obj.coordinate_y,
-                    y=user_obj.coordinate_y,
+                    x=str(user_obj.coordinate_y),
+                    y=str(user_obj.coordinate_y),
                 ),
-                rater_num=user_info_obj.rate_times,
+                rater_num=str(user_info_obj.rate_times),
                 rank=dict(
                     score=dict(
-                        score_rank=user_info_obj.score_rank,
+                        score_rank=str(user_info_obj.score_rank),
                         score_percentage=user_info_obj.score_percentage,
                     ),
                     flower=dict(
-                        flower_rank=user_info_obj.flower_rank,
+                        flower_rank=str(user_info_obj.flower_rank),
                         flower_percentage=user_info_obj.flower_percentage,
                     ),
                     special=dict(
-                        special_rank=user_info_obj.special_rank,
+                        special_rank=str(user_info_obj.special_rank),
                         special_percentage=user_info_obj.special_percentage,
                     ),
                 )
             ),
             display=dict(
                 beauty_list=beauty_list,
-                status_code=status_code,
             )
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
@@ -225,11 +225,11 @@ def logout(request):
     if not status_code:
         status = record_data.RecordData().record_logout(fb_id)
         res_data = dict(
-            status_code=status,
+            status_code=str(status),
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
@@ -252,27 +252,27 @@ def show_profile(request):
         user_info_obj = user_info.objects.get(user_fb_id=fb_id)
         user_obj = user.objects.get(fb_id=fb_id)
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             first_name=user_obj.first_name,
-            flower=user_info_obj.total_flowers,
-            score=user_info_obj.average_score,
-            special=user_info_obj.total_specials,
-            rater_num=user_info_obj.rate_times,
+            flower=str(user_info_obj.total_flowers),
+            score=str(user_info_obj.average_score),
+            special=str(user_info_obj.total_specials),
+            rater_num=str(user_info_obj.rate_times),
             coordinate=dict(
-                x=user_obj.coordinate_x,
-                y=user_obj.coordinate_y
+                x=str(user_obj.coordinate_x),
+                y=str(user_obj.coordinate_y),
             ),
             rank=dict(
                 score=dict(
-                    score_rank=user_info_obj.score_rank,
+                    score_rank=str(user_info_obj.score_rank),
                     score_percentage=user_info_obj.score_percentage,
                 ),
                 flower=dict(
-                    flower_rank=user_info_obj.flower_rank,
-                    flower_percentage=user_info_obj.flower_percentage,
+                    flower_rank=str(user_info_obj.flower_rank),
+                    flower_percentage=str(user_info_obj.flower_percentage),
                 ),
                 special=dict(
-                    special_rank=user_info_obj.special_rank,
+                    special_rank=str(user_info_obj.special_rank),
                     special_percentage=user_info_obj.special_percentage,
                 ),
             )
@@ -305,12 +305,12 @@ def display_nearby_beauties(request):
         beauty_fb_id_list = db_operation.DbOperation().cal_display_nearby_beauties_op(gender, fb_id)
         beauty_list = calculate_data.CalculateData().cal_display_beauties(fb_id, beauty_fb_id_list)
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             beauty_list=beauty_list,
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
@@ -337,11 +337,11 @@ def display_all_beauties(request):
         beauty_list = calculate_data.CalculateData().cal_display_beauties(fb_id, beauty_fb_id_list)
         res_data = dict(
             beauty_list=beauty_list,
-            status_code=status_code,
+            status_code=str(status_code),
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
@@ -398,11 +398,11 @@ def rating_records(request):
                 if record_data.RecordData().record_rating(fb_id, beauty_fb_id, score, is_flower, is_special):
                     status = record_data.RecordData().record_flower(beauty_fb_id, is_flower, is_special)
         res_data = dict(
-            status_code=status,
+            status_code=str(status),
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
@@ -428,13 +428,13 @@ def nearby_rank_list(request):
         female_rank = calculate_data.CalculateData().cal_beauty_rank(female_ranked_objects)
         male_rank = calculate_data.CalculateData().cal_beauty_rank(male_ranked_objects)
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             boys=male_rank,
             girls=female_rank,
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
@@ -460,13 +460,13 @@ def all_rank_list(request):
         female_rank = calculate_data.CalculateData().cal_beauty_rank(female_ranked_objects)
         male_rank = calculate_data.CalculateData().cal_beauty_rank(male_ranked_objects)
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             boys=male_rank,
             girls=female_rank,
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
@@ -490,12 +490,12 @@ def flower_limit_update(request):
     if not status_code:
         result = db_operation.DbOperation().update_flower_limit(fb_id, user_datetime)
         res_data = dict(
-            result=result,
-            status_code=status_code,
+            result=str(result),
+            status_code=str(status_code),
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
@@ -522,22 +522,22 @@ def cal_user_score(request):
         user_info_obj.average_score = new_average_score
         user_info_obj.save()
         res_data = dict(
-            score=new_average_score,
-            status_code=status_code,
+            score=str(new_average_score),
+            status_code=str(status_code),
         )
         calculate_data.CalculateData().cal_user_rank(fb_id)
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
-
+@csrf_exempt
 def update_global(request):
     status_code = db_operation.DbOperation().update_global_var()
     res_data = dict(
-        status_code=status_code,
+        status_code=str(status_code),
     )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
@@ -566,15 +566,15 @@ def buy_flowers(request):
             special_num = data["special_num"]
             status = db_operation.DbOperation().buy_flowers_op(fb_id, special_num, flower_num)
             res_data = dict(
-                status_code=status,
+                status_code=str(status),
             )
         else:
             res_data = dict(
-                status_code=status_code,
+                status_code=str(status_code),
             )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")

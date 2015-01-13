@@ -24,7 +24,7 @@ urlpatterns = patterns('',
     url(r'^user/flower/limit/update/$', flower_limit_update),
     url(r'^user/score/calculate/$', cal_user_score),
     url(r'^global/update/$', update_global),
-    url(r'^user/buy/flowers$', buy_flowers),
+    url(r'^user/buy/flowers/$', buy_flowers),
 )
 
 urlpatterns += staticfiles_urlpatterns()
