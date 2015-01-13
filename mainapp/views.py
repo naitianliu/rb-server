@@ -117,7 +117,8 @@ def test(request):
 def login(request):
     """
     gender: 0--female, 1--male, 2--both.
-    status_code: 0--success, 1--failure
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id,
+    100--top 100 users, 500--top 500 users, 1000, top 1000 users,
     POST
     request:
     {
@@ -141,7 +142,7 @@ def login(request):
     session_id = usr["session_id"]
     status_code = access.Access().check_access(fb_id, session_id)
     if not status_code:
-        record_data.RecordData().record_login(usr)
+        status_code = record_data.RecordData().record_login(usr)
         user_obj = user.objects.get(fb_id=fb_id)
         try:
             user_info_obj = user_info.objects.get(user_fb_id=fb_id)
@@ -161,7 +162,7 @@ def login(request):
                 special_percentage="0%",
             ).save()
         user_info_obj = user_info.objects.get(user_fb_id=fb_id)
-        beauty_fb_id_list = db_operation.DbOperation().cal_display_all_beauties_op(gender)
+        beauty_fb_id_list = db_operation.DbOperation().cal_display_all_beauties_op(gender, fb_id)
         try:
             row = user_rating.objects.get(from_fb_id=fb_id)
             beauty_list = calculate_data.CalculateData().cal_display_beauties(fb_id, beauty_fb_id_list)
@@ -171,7 +172,7 @@ def login(request):
         res_data = dict(
             status_code=str(status_code),
             profile=dict(
-                user_rank_num=str(user_id),
+                user_register_num=str(user_id),
                 flower=str(user_info_obj.total_flowers),
                 score=str(user_info_obj.average_score),
                 special=str(user_info_obj.total_specials),
@@ -211,6 +212,7 @@ def login(request):
 @csrf_exempt
 def logout(request):
     """
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
     POST
     request:
     {
@@ -236,7 +238,7 @@ def logout(request):
 @csrf_exempt
 def show_profile(request):
     """
-    # gender: 0--female, 1--male, 2--both.
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
     POST
     request:
     {
@@ -279,14 +281,14 @@ def show_profile(request):
         )
     else:
         res_data = dict(
-            status_code=status_code,
+            status_code=str(status_code),
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
+"""
 @csrf_exempt
 def display_nearby_beauties(request):
-    """
     # gender: 0--female, 1--male, 2--both.
     POST
     request:
@@ -295,7 +297,6 @@ def display_nearby_beauties(request):
         "gender": 2
         "session_id": ""
     }
-    """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
     gender = data["gender"]
@@ -314,27 +315,36 @@ def display_nearby_beauties(request):
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
+"""
 
 
 @csrf_exempt
 def display_all_beauties(request):
     """
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+    # is_span: 0--all, 1--nearby
     POST
     request:
     {
         "fb_id": fb_id,
         "gender": 2
         "session_id": ""
+        "is_span": 1
     }
     """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
     gender = data["gender"]
     session_id = data["session_id"]
+    is_span = data["is_span"]
     status_code = access.Access().check_access(fb_id, session_id)
     if not status_code:
-        beauty_fb_id_list = db_operation.DbOperation().cal_display_all_beauties_op(gender)
-        beauty_list = calculate_data.CalculateData().cal_display_beauties(fb_id, beauty_fb_id_list)
+        if not is_span:
+            beauty_fb_id_list = db_operation.DbOperation().cal_display_all_beauties_op(gender, fb_id)
+            beauty_list = calculate_data.CalculateData().cal_display_beauties(fb_id, beauty_fb_id_list)
+        else:
+            beauty_fb_id_list = db_operation.DbOperation().cal_display_nearby_beauties_op(gender, fb_id)
+            beauty_list = calculate_data.CalculateData().cal_display_beauties(fb_id, beauty_fb_id_list)
         res_data = dict(
             beauty_list=beauty_list,
             status_code=str(status_code),
@@ -349,6 +359,8 @@ def display_all_beauties(request):
 @csrf_exempt
 def rating_records(request):
     """
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+    4--overflow flowers or specials
     POST
     request:
     {
@@ -385,7 +397,8 @@ def rating_records(request):
         current_flower = current_user.flower_limit
         current_special = current_user.special_limit
         if current_special < used_special or current_flower < used_flower:
-            status = record_data.RecordData().record_exception(fb_id, used_flower, current_flower, used_special, current_special)
+            record_data.RecordData().record_exception(fb_id, used_flower, current_flower, used_special, current_special)
+            status_code = 4
         else:
             flower_num = current_flower - used_flower
             special_num = current_special - used_special
@@ -395,10 +408,10 @@ def rating_records(request):
                 score = item["score"]
                 is_flower = item["flower"]
                 is_special = item["special"]
-                if record_data.RecordData().record_rating(fb_id, beauty_fb_id, score, is_flower, is_special):
-                    status = record_data.RecordData().record_flower(beauty_fb_id, is_flower, is_special)
+                record_data.RecordData().record_rating(fb_id, beauty_fb_id, score, is_flower, is_special)
+                record_data.RecordData().record_flower(beauty_fb_id, is_flower, is_special)
         res_data = dict(
-            status_code=str(status),
+            status_code=str(status_code),
         )
     else:
         res_data = dict(
@@ -407,16 +420,15 @@ def rating_records(request):
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
+"""
 @csrf_exempt
 def nearby_rank_list(request):
-    """
     POST
     request:
     {
         "fb_id": ""
         "session_id": ""
     }
-    """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
     session_id = data["session_id"]
@@ -438,27 +450,38 @@ def nearby_rank_list(request):
             fb_id=fb_id,
         )
     return HttpResponse(json.dumps(res_data), content_type="application/json")
-
+"""
 
 @csrf_exempt
 def all_rank_list(request):
     """
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+    # is_span: 0--all, 1--nearby
     POST
     request:
     {
         "fb_id": ""
         "session_id": ""
+        "is_span": 1
     }
     """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
     session_id = data["session_id"]
+    is_span = data["is_span"]
     status_code = access.Access().check_access(fb_id, session_id)
     if not status_code:
-        female_ranked_objects = globals.female_ranked_object
-        male_ranked_objects = globals.male_ranked_object
-        female_rank = calculate_data.CalculateData().cal_beauty_rank(female_ranked_objects)
-        male_rank = calculate_data.CalculateData().cal_beauty_rank(male_ranked_objects)
+        if not is_span:
+            female_ranked_objects = globals.female_ranked_object
+            male_ranked_objects = globals.male_ranked_object
+            female_rank = calculate_data.CalculateData().cal_beauty_rank(female_ranked_objects)
+            male_rank = calculate_data.CalculateData().cal_beauty_rank(male_ranked_objects)
+        else:
+            ranked_obj = db_operation.DbOperation().cal_nearby_beauty_rank_op(fb_id)
+            female_ranked_objects = ranked_obj["female_ranked_objects"]
+            male_ranked_objects = ranked_obj["male_ranked_objects"]
+            female_rank = calculate_data.CalculateData().cal_beauty_rank(female_ranked_objects)
+            male_rank = calculate_data.CalculateData().cal_beauty_rank(male_ranked_objects)
         res_data = dict(
             status_code=str(status_code),
             boys=male_rank,
@@ -474,23 +497,24 @@ def all_rank_list(request):
 @csrf_exempt
 def flower_limit_update(request):
     """
+    status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+    4--invalid update
     POST
     request:
     {
         "fb_id": ""
-        "datetime": "datetime"
+        "epoch": 1234567890
         "session_id":
     }
     """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
-    user_datetime = data["datetime"]
+    epoch = data["epoch"]
     session_id = data["session_id"]
     status_code = access.Access().check_access(fb_id, session_id)
     if not status_code:
-        result = db_operation.DbOperation().update_flower_limit(fb_id, user_datetime)
+        status_code = db_operation.DbOperation().update_flower_limit(fb_id, epoch)
         res_data = dict(
-            result=str(result),
             status_code=str(status_code),
         )
     else:
@@ -507,30 +531,21 @@ def cal_user_score(request):
     request:
     {
         "fb_id": ""
-        "session_id": ""
     }
     """
     data = json.loads(request.body)
     fb_id = data["fb_id"]
-    session_id = data["session_id"]
-    status_code = access.Access().check_access(fb_id, session_id)
-    if not status_code:
-        user_info_obj = user_info.objects.get(user_fb_id=fb_id)
-        rate_times = user_info_obj.rate_times
-        average_score = user_info_obj.average_score
-        new_average_score = calculate_data.CalculateData().cal_user_score(fb_id, rate_times, average_score)
-        user_info_obj.average_score = new_average_score
-        user_info_obj.save()
-        res_data = dict(
-            score=str(new_average_score),
-            status_code=str(status_code),
-        )
-        calculate_data.CalculateData().cal_user_rank(fb_id)
-    else:
-        res_data = dict(
-            status_code=str(status_code),
-            fb_id=fb_id,
-        )
+    user_info_obj = user_info.objects.get(user_fb_id=fb_id)
+    rate_times = user_info_obj.rate_times
+    average_score = user_info_obj.average_score
+    new_average_score = calculate_data.CalculateData().cal_user_score(fb_id, rate_times, average_score)
+    user_info_obj.average_score = new_average_score
+    user_info_obj.save()
+    res_data = dict(
+        score=str(new_average_score),
+        status_code="0",
+    )
+    calculate_data.CalculateData().cal_user_rank(fb_id)
     return HttpResponse(json.dumps(res_data), content_type="application/json")
 
 @csrf_exempt
@@ -545,6 +560,8 @@ def update_global(request):
 def buy_flowers(request):
     """
     POST
+   status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id
+   4--exisiting receipt, 5--invalid receipt
     request:
     {
         "fb_id": ""
@@ -560,7 +577,7 @@ def buy_flowers(request):
     receipt_data = data["receipt_data"]
     status_code = access.Access().check_access(fb_id, session_id)
     if not status_code:
-        status_code = verify_receipt.VerifyReceipt().check_purchase(fb_id, receipt_data)
+        status_code = verify_receipt.VerifyReceipt().check_purchase(fb_id, receipt_data, status_code)
         if not status_code:
             flower_num = data["flower_num"]
             special_num = data["special_num"]

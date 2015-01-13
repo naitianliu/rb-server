@@ -29,7 +29,7 @@ class Access(object):
         if session_id == db_session_id and db_expire_time.date() > today.date():
             return 0
         else:
-            return 1
+            return 2
 
     def update_session_Id(self, fb_id, session_id, issued_time, expire_time):
         user_session_obj = user_session.objects.get(fB_id=fb_id)
@@ -80,12 +80,14 @@ class Access(object):
                     if session_fb_id == fb_id:
                         expire_time = session_info["expire_time"]
                         issued_time = session_info["issued_time"]
-                        self.update_session_Id(fb_id, session_id, issued_time, expire_time)
-                        status_code = 0
+                        if self.update_session_Id(fb_id, session_id, issued_time, expire_time):
+                            status_code = 0
+                        else:
+                            status_code = 1
                     else:
-                        status_code = 1
+                        status_code = 3
                 else:
-                    status_code = 1
+                    status_code = 2
             else:
                 status_code = self.check_session_Id(fb_id, session_id)
         except user_session.DoesNotExist:
@@ -95,10 +97,12 @@ class Access(object):
                 if session_fb_id == fb_id:
                     expire_time = session_info["expire_time"]
                     issued_time = session_info["issued_time"]
-                    self.record_session_Id(fb_id, session_id, issued_time, expire_time)
-                    status_code = 0
+                    if self.record_session_Id(fb_id, session_id, issued_time, expire_time):
+                        status_code = 0
+                    else:
+                        status_code = 1
                 else:
-                    status_code = 1
+                    status_code = 3
             else:
-                status_code = 1
+                status_code = 2
         return status_code

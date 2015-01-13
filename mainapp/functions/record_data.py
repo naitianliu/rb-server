@@ -13,6 +13,7 @@ class RecordData(object):
         self.ratio = 0.1
 
     def record_login(self, usr):
+        status_code = 0
         try:
             user_profile = user.objects.get(fb_id=usr["fb_id"])
             user_profile.first_name = usr["first_name"]
@@ -44,15 +45,18 @@ class RecordData(object):
                 user_obj.flower_limit = 500
                 user_obj.special_limit = 200
                 user_obj.save()
+                status_code = 100
             if 100 < user_id <= 500:
                 user_obj.flower_limit = 200
                 user_obj.special_limit = 100
                 user_obj.save()
+                status_code = 500
             if 500 < user_id <= 1000:
                 user_obj.flower_limit = 50
                 user_obj.special_limit = 30
                 user_obj.save()
-        return True
+                status_code = 1000
+        return status_code
 
     def record_logout(self, user_fb_id):
         user_profile = user.objects.get(fb_id=user_fb_id)
