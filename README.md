@@ -26,10 +26,8 @@ request:
             "is_female": 1,
             "gender": 2
             "email": "",
-            "coordinate":{
-                "x": 42.5678,
-                "y": 42.1234
-            },
+            "coordinate_x": 42.5678,
+            "coordinate_y": 42.1234,
         }
     }
 
