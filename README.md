@@ -18,8 +18,8 @@ GET  /global/update/                  update global data
     100--top 100 users, 500--top 500 users, 1000--top 1000 users,
 request:
 <code>
-    {
-        "usr":{
+    {<br>
+        "usr":{<br>
             "session_id": ""
             "fb_id": "",
             "first_name": "",
