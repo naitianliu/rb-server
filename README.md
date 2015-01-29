@@ -17,7 +17,6 @@ GET  /global/update/                  update global data
     status_code: 0--success, 1--internal failure, 2--invalid session id,3--session id doesnt match action fb id,
     100--top 100 users, 500--top 500 users, 1000--top 1000 users,
 request:
-"""json
     {
         "usr":
             "session_id": ""
@@ -31,7 +30,7 @@ request:
             "coordinate_y": 42.1234,
         }
     }
-"""
+
 response:
 {
     "status_code": "0",
